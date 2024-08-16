@@ -9,6 +9,7 @@ const session = require("express-session");
 const passport = require("passport");
 const OAuth2Strategy = require("passport-google-oauth2").Strategy;
 const userdb = require("./model/userschema");
+const collection = require("./model/loginschema");
 
 const clientid = "371272045042-8l2m44s5hf7hluvr3stmqcatcvj9kddj.apps.googleusercontent.com";
 const clientsecret = "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";
@@ -93,3 +94,52 @@ app.get("/logout",(req,res,next)=>{
 app.listen(PORT, () => {
     console.log(`Server started at port number ${PORT}`);
 });
+
+
+
+app.get("/login",cors(),(req,res)=>{
+
+})
+
+app.post("/",async(req,res)=>{
+    const{email,password} = req.body
+    try{
+        const check = await collection.findOne({email:email})
+        if(check){
+            res.json("exist")
+        }
+        else{
+            res.json("notexist")
+        }
+    }
+    catch(e){
+        res.json("notexist")
+
+    }
+})
+
+
+app.post("/signup",async(req,res)=>{
+    const{email,password} = req.body
+    const data={
+        email:email,
+        password:password
+    }
+    try{
+        const check = await collection.findOne({email:email})
+        if(check){
+            res.json("exist")
+        }
+        else{
+            res.json("notexist")
+            await collection.insertMany([data])
+        }
+    }
+    catch(e){
+        res.json("notexist")
+
+    }
+})  
+app.listen(8000,()=>{
+    console.log("port connected")
+})
