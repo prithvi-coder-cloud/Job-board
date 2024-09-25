@@ -13,7 +13,6 @@ const Job = require("./model/Jobs");
 const nodemailer = require('nodemailer');
 //const jobRoutes = require("./Routes/jobs");
 
-
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -23,8 +22,8 @@ const multer = require('multer');
 const PORT = 6005; // Define backend server port
 
 
-const clientid = "371272045042-8l2m44s5hf7hluvr3stmqcatcvj9kddj.apps.googleusercontent.com";
-const clientsecret = "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";
+const clientid = process.env.CLIENT_ID
+const clientsecret = process.env.CLIENT_SECRET
 
 // Connect to MongoDB using the connection string from the .env file
 mongoose.connect(process.env.DATABASE, {
@@ -43,7 +42,7 @@ app.use(express.json());
 
 // Setup session
 app.use(session({
-  secret: "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",
+  secret: clientsecret,
   resave: false,
   saveUninitialized: true
 }));
@@ -288,6 +287,98 @@ app.delete('/users/:_id', async (req, res) => {
 // }).catch((error) => {
 //   console.error('Connection error:', error.message);
 // });
+
+
+
+
+
+// // Middleware
+// app.use(cors());
+// app.use(express.json());
+// app.use('/images', express.static(path.join(__dirname, 'public/images'))); // Serve static images
+
+// // Multer setup for file uploads
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/images');
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname));
+//   }
+// });
+
+// const upload = multer({ storage });
+
+// // Route to add a new job
+// app.post('/api/jobs/add-job', upload.single('companyLogo'), async (req, res) => {
+//   try {
+//     const {
+//       companyName, jobTitle, minPrice, maxPrice, salaryType,
+//       jobLocation, postingDate, experienceLevel, employmentType, description
+//     } = req.body;
+
+//     if (!companyName || !jobTitle || !minPrice || !maxPrice || !salaryType || !jobLocation || !postingDate || !experienceLevel || !employmentType || !description) {
+//       return res.status(400).json({ error: 'All fields are required.' });
+//     }
+
+//     const job = new Job({
+//       companyName,
+//       jobTitle,
+//       minPrice: parseFloat(minPrice),
+//       maxPrice: parseFloat(maxPrice),
+//       salaryType,
+//       jobLocation,
+//       postingDate: new Date(postingDate),
+//       experienceLevel,
+//       employmentType,
+//       description,
+//       companyLogo: req.file ? `/images/${req.file.filename}` : null
+//     });
+
+//     await job.save();
+//     res.status(201).json({ message: 'Job added successfully!' });
+//   } catch (error) {
+//     console.error('Error saving job:', error);
+//     res.status(500).json({ error: 'Failed to add job' });
+//   }
+// });
+
+// // Route to get all jobs
+// app.get('/api/jobs', async (req, res) => {
+//   try {
+//     const jobs = await Job.find();
+//     res.status(200).json(jobs);
+//   } catch (error) {
+//     console.error('Error fetching jobs:', error);
+//     res.status(500).json({ error: 'Failed to fetch jobs' });
+//   }
+// });
+
+// Middleware
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(express.json());
+
+// Route to add multiple jobs
+app.post('/jobs', async (req, res) => {
+  try {
+    const jobs = await Job.insertMany(req.body); // Insert many jobs
+    res.status(201).json(jobs);
+  } catch (error) {
+    console.error('Error adding jobs:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Route to get all jobs
+app.get('/jobs', async (req, res) => {
+  try {
+    const jobs = await Job.find();
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server started at port number ${PORT}`);
